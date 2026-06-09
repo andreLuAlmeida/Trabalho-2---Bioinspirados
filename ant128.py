@@ -7,6 +7,7 @@ rho = 0.5
 Q = 100
 tau = 10**-6
 numeroFormigas = 50
+peso_penalidade = 500  # custo por cidade revisitada
 
 #Gera feromoneos iniciais para cada cidade e retorna a matriz de feromônios
 def geraFeromoniosIniciais(num_cidades):
@@ -46,20 +47,21 @@ def geraPopulacaoInicial(num_formigas, num_cidades):
 def probabilidadeTransicao(formiga, cidade_atual, cidades, feromonios):
     num_cidades = len(cidades)
     probabilidades = [0] * num_cidades
+    visitadas = set(formiga)
     soma = 0
 
     for j in range(num_cidades):
-        if j not in formiga and j != cidade_atual:
-            tau_ij = feromonios[cidade_atual][j] ** alpha
-            eta_ij = (1 / cidades[cidade_atual][j]) ** beta
-            probabilidades[j] = tau_ij * eta_ij
-            soma += probabilidades[j]
+        if j == cidade_atual:
+            continue
+        tau_ij = feromonios[cidade_atual][j] ** alpha
+        eta_ij = (1 / cidades[cidade_atual][j]) ** beta
+        # Reduz atratividade de cidades já visitadas pelo fator de penalidade
+        fator = 1.0 if j not in visitadas else (1.0 / peso_penalidade)
+        probabilidades[j] = tau_ij * eta_ij * fator
+        soma += probabilidades[j]
 
     for j in range(num_cidades):
-        if soma > 0:
-            probabilidades[j] = probabilidades[j] / soma
-        else:
-            probabilidades[j] = 0
+        probabilidades[j] = probabilidades[j] / soma if soma > 0 else 0
 
     return probabilidades
 
@@ -105,6 +107,9 @@ def custoCaminho(caminho, cidades):
         custo += cidades[caminho[i]][caminho[i+1]]
 
     custo += cidades[caminho[-1]][caminho[0]]
+
+    revisitas = len(caminho) - len(set(caminho))
+    custo += revisitas * peso_penalidade
 
     return custo
 
@@ -215,4 +220,5 @@ def experimento_fatorial():
     plt.show()
 
 
-experimento_fatorial()
+if __name__ == '__main__':
+    experimento_fatorial()
