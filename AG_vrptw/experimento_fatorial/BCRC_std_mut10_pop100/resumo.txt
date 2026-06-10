@@ -1,0 +1,12 @@
+Configuração: BCRC_std_mut10_pop100
+  cruzamento=BCRC | taxa_mutacao=0.1
+  decoder=std | tam_pop=100
+  n_elite=2 | peso_veiculo=2000.0 | n_geracoes=200
+
+  seed=42     → veículos=4  distância=1373.2055
+  seed=7      → veículos=4  distância=1609.2142
+  seed=123    → veículos=4  distância=1493.7860
+  seed=999    → veículos=4  distância=1354.8409
+
+  Média veículos : 4.00
+  Média distância: 1457.7617

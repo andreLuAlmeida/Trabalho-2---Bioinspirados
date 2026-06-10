@@ -1,0 +1,12 @@
+Configuração: CX_maxfill_mut05_pop100
+  cruzamento=CX | taxa_mutacao=0.05
+  decoder=maxfill | tam_pop=100
+  n_elite=2 | peso_veiculo=2000.0 | n_geracoes=200
+
+  seed=42     → veículos=4  distância=1302.5454
+  seed=7      → veículos=4  distância=1252.3155
+  seed=123    → veículos=4  distância=1237.4802
+  seed=999    → veículos=4  distância=1209.8118
+
+  Média veículos : 4.00
+  Média distância: 1250.5382

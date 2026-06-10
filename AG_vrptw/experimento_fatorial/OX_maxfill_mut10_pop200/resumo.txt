@@ -1,0 +1,12 @@
+Configuração: OX_maxfill_mut10_pop200
+  cruzamento=OX | taxa_mutacao=0.1
+  decoder=maxfill | tam_pop=200
+  n_elite=2 | peso_veiculo=2000.0 | n_geracoes=200
+
+  seed=42     → veículos=4  distância=1305.1161
+  seed=7      → veículos=4  distância=1241.2411
+  seed=123    → veículos=4  distância=1266.0845
+  seed=999    → veículos=4  distância=1283.0161
+
+  Média veículos : 4.00
+  Média distância: 1273.8645

@@ -1,0 +1,12 @@
+Configuração: OX_std_mut05_pop200
+  cruzamento=OX | taxa_mutacao=0.05
+  decoder=std | tam_pop=200
+  n_elite=2 | peso_veiculo=2000.0 | n_geracoes=200
+
+  seed=42     → veículos=8  distância=1136.2230
+  seed=7      → veículos=8  distância=1285.1013
+  seed=123    → veículos=7  distância=1251.6270
+  seed=999    → veículos=8  distância=1272.9893
+
+  Média veículos : 7.75
+  Média distância: 1236.4851
