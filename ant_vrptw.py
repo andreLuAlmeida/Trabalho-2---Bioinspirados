@@ -1,4 +1,6 @@
 import random
+import time
+import os
 import matplotlib.pyplot as plt
 from AG import ler_instancia, avaliar_vrptw
 
@@ -123,9 +125,13 @@ def atualiza_feromonios(feromonios, solucoes, custos):
             feromonios[0][prev] += deposito
 
 
-def ACO_VRPTW(arquivo, iteracoes=100):
+def ACO_VRPTW(arquivo, iteracoes=100, autores="",
+              caminho_resultado="resultado_aco.txt",
+              caminho_grafico="convergencia_aco_vrptw.png",
+              verbose=True):
     customers, dist, num_vehicles, capacity = ler_instancia(arquivo)
     n = len(customers)
+    tempo_inicio = time.time()
 
     feromonios = gera_feromonios(n)
 
@@ -158,17 +164,36 @@ def ACO_VRPTW(arquivo, iteracoes=100):
         historico_veic.append(veic_iter)
         historico_dist.append(dist_iter)
 
-        print(f"Iter {it+1:03d} | Veículos: {veic_iter} | Distância: {dist_iter:.4f} | Fitness: {custo_iter:.4f}")
+        if verbose:
+            print(f"Iter {it+1:03d} | Veículos: {veic_iter} | Distância: {dist_iter:.4f} | Fitness: {custo_iter:.4f}")
 
         atualiza_feromonios(feromonios, solucoes, custos)
 
     _, dist_final, veic_final = custo_solucao(melhor_rotas, customers, dist)
-    print("\n========================================")
-    print(f"Melhor solução: {veic_final} veículos | Distância: {dist_final:.4f}")
-    for i, rota in enumerate(melhor_rotas, 1):
-        print(f"  Rota {i}: {' '.join(map(str, rota))}")
+    tempo_total = time.time() - tempo_inicio
+    nome_instancia = os.path.splitext(os.path.basename(arquivo))[0]
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+    linhas_rotas = []
+    for i, rota in enumerate(melhor_rotas, 1):
+        caminho = " -> ".join(["0"] + [str(c) for c in rota] + ["0"])
+        linhas_rotas.append(f"Rota {i}: {caminho}")
+
+    resultado = (
+        f"======== MELHOR SOLUÇÃO ACO ========\n"
+        f"Nome da instância : {nome_instancia}\n"
+        f"Autores : {autores}\n"
+        f"Número de veículos: {veic_final}\n"
+        f"Distância total: {dist_final:.4f}\n"
+        f"Tempo total: {tempo_total:.1f}s\n"
+        f"Rotas:\n" + "\n".join(linhas_rotas) + "\n"
+    )
+
+    if verbose:
+        print(resultado)
+    with open(caminho_resultado, "w") as f:
+        f.write(resultado)
+
+    _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
     ax1.plot(historico_dist, color='b')
     ax1.set_xlabel("Iteração")
     ax1.set_ylabel("Distância total")
@@ -181,11 +206,11 @@ def ACO_VRPTW(arquivo, iteracoes=100):
     ax2.grid(True, linestyle='--', alpha=0.7)
 
     plt.tight_layout()
-    plt.savefig("convergencia_aco_vrptw.png", dpi=300, bbox_inches='tight')
+    plt.savefig(caminho_grafico, dpi=300, bbox_inches='tight')
     plt.close()
 
     return melhor_rotas, dist_final, veic_final
 
 
 if __name__ == '__main__':
-    ACO_VRPTW("Instancias_teste/c1_2_1.txt", iteracoes=500)
+    ACO_VRPTW("Instancias_teste/c101.txt", iteracoes=500)

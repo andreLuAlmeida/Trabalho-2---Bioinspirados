@@ -1,4 +1,6 @@
 import random
+import time
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from AG import (ler_instancia, decoder_max_fill, fitness_vrptw,
@@ -74,10 +76,14 @@ def re_selecionar(populacao, fitnesses, mutados, customers, dist, capacity,
 def clonalg_vrptw(arquivo, tam_pop=150, n_sel=25, n_geracoes=100,
                   beta=1.0, p=5.0, d=20, peso_veiculo=2000.0,
                   frac_nn=0.2, seed=42,
-                  caminho_grafico="convergencia_clonalg_vrptw.png"):
+                  autores="",
+                  caminho_resultado="resultado_clonalg.txt",
+                  caminho_grafico="convergencia_clonalg_vrptw.png",
+                  verbose=True):
 
     random.seed(seed)
     np.random.seed(seed)
+    tempo_inicio = time.time()
 
     customers, dist, num_vehicles, capacity = ler_instancia(arquivo)
 
@@ -125,18 +131,36 @@ def clonalg_vrptw(arquivo, tam_pop=150, n_sel=25, n_geracoes=100,
         historico_veic.append(veic_melhor)
         historico_dist.append(dist_melhor)
 
-        print(f"Geração {geracao+1:03d} | Veículos: {veic_melhor} | "
-              f"Distância: {dist_melhor:.4f} | Fitness: {melhor_fit:.4f}")
+        if verbose:
+            print(f"Geração {geracao+1:03d} | Veículos: {veic_melhor} | "
+                  f"Distância: {dist_melhor:.4f} | Fitness: {melhor_fit:.4f}")
 
     rotas_finais = decoder_max_fill(melhor_global_ind, customers, dist, capacity)
     dist_final, veic_final = avaliar_vrptw(rotas_finais, customers, dist)
+    tempo_total = time.time() - tempo_inicio
+    nome_instancia = os.path.splitext(os.path.basename(arquivo))[0]
 
-    print("\n========================================")
-    print(f"Melhor solução: {veic_final} veículos | Distância: {dist_final:.4f}")
+    linhas_rotas = []
     for i, rota in enumerate(rotas_finais, 1):
-        print(f"  Rota {i}: {' '.join(map(str, rota))}")
+        caminho = " -> ".join(["0"] + [str(c) for c in rota] + ["0"])
+        linhas_rotas.append(f"Rota {i}: {caminho}")
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+    resultado = (
+        f"======== MELHOR SOLUÇÃO CLONALG ========\n"
+        f"Nome da instância : {nome_instancia}\n"
+        f"Autores : {autores}\n"
+        f"Número de veículos: {veic_final}\n"
+        f"Distância total: {dist_final:.4f}\n"
+        f"Tempo total: {tempo_total:.1f}s\n"
+        f"Rotas:\n" + "\n".join(linhas_rotas) + "\n"
+    )
+
+    if verbose:
+        print(resultado)
+    with open(caminho_resultado, "w") as f:
+        f.write(resultado)
+
+    _, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
     ax1.plot(historico_dist, color='b')
     ax1.set_xlabel("Geração")
     ax1.set_ylabel("Distância total")
@@ -156,4 +180,4 @@ def clonalg_vrptw(arquivo, tam_pop=150, n_sel=25, n_geracoes=100,
 
 
 if __name__ == '__main__':
-    clonalg_vrptw("Instancias_teste/rc208.txt", n_geracoes=200, seed=42)
+    clonalg_vrptw("Instancias_teste/rc2_4_9.txt", n_geracoes=100, seed=42)

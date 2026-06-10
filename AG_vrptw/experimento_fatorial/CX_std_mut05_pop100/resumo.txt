@@ -1,0 +1,12 @@
+Configuração: CX_std_mut05_pop100
+  cruzamento=CX | taxa_mutacao=0.05
+  decoder=std | tam_pop=100
+  n_elite=2 | peso_veiculo=2000.0 | n_geracoes=200
+
+  seed=42     → veículos=7  distância=1180.8598
+  seed=7      → veículos=8  distância=1091.2268
+  seed=123    → veículos=7  distância=1117.4449
+  seed=999    → veículos=7  distância=1360.4572
+
+  Média veículos : 7.25
+  Média distância: 1187.4972

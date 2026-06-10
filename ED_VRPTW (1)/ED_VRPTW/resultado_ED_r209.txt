@@ -1,0 +1,12 @@
+Numero de Veiculos: 4
+Distancia Total: 1316.89
+Tempo de Execucao (segundos): 137.9246
+Viavel: True
+Violacao Total: 0.0
+Semente: 42
+Parametros ED: NP=50, F=0.6, CR=0.85, MAX_GERACOES=300
+Rotas:
+Rota 1: 27 52 31 88 62 11 64 19 47 8 83 59 93 38 14 87 57 67 56 74 40 58 53 22 4 39 25 55 24 80 68 77 66 32 70 1
+Rota 2: 28 76 12 72 75 23 73 15 16 61 5 99 6 13 18 94 85 84 100 42 43 41 97 92 37 91 96 60 89
+Rota 3: 95 2 21 29 79 51 63 90 65 71 9 81 33 34 3 50 10 49 36 46 48
+Rota 4: 69 7 82 45 98 44 17 86 30 20 35 78 54 26

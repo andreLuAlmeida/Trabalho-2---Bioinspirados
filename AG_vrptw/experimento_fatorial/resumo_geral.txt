@@ -1,0 +1,26 @@
+CONFIG                          VEIC_MED  DIST_MED
+-------------------------------------------------------
+OX_std_mut05_pop100                 7.00   1586.4628
+OX_std_mut05_pop200                 7.75   1236.4851
+OX_std_mut10_pop100                 7.00   1443.1055
+OX_std_mut10_pop200                 7.00   1473.2317
+OX_maxfill_mut05_pop100             4.00   1289.8664
+OX_maxfill_mut05_pop200             4.00   1294.0086
+OX_maxfill_mut10_pop100             4.00   1290.4595
+OX_maxfill_mut10_pop200             4.00   1273.8645
+CX_std_mut05_pop100                 7.25   1187.4972
+CX_std_mut05_pop200                 6.75   1071.3068
+CX_std_mut10_pop100                 7.00   1224.2678
+CX_std_mut10_pop200                 7.00   1146.7156
+CX_maxfill_mut05_pop100             4.00   1250.5382
+CX_maxfill_mut05_pop200             4.00   1215.7589
+CX_maxfill_mut10_pop100             4.00   1223.5313
+CX_maxfill_mut10_pop200             4.00   1215.5531
+BCRC_std_mut05_pop100               4.00   1482.6187
+BCRC_std_mut05_pop200               4.00   1434.3821
+BCRC_std_mut10_pop100               4.00   1457.7617
+BCRC_std_mut10_pop200               4.00   1441.2717
+BCRC_maxfill_mut05_pop100           3.75   1337.5810
+BCRC_maxfill_mut05_pop200           3.75   1337.5951
+BCRC_maxfill_mut10_pop100           3.75   1338.2736
+BCRC_maxfill_mut10_pop200           3.75   1336.5684
