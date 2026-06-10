@@ -1,0 +1,12 @@
+Configuração: CX_oropt_mut010
+  cruzamento=CX | taxa_mutacao=0.1
+  decoder=padrão
+  or_opt=True | n_geracoes=25
+
+  seed=42     → veículos=3  distância=1229.5406
+  seed=7      → veículos=3  distância=1177.4350
+  seed=123    → veículos=3  distância=1084.4621
+  seed=999    → veículos=3  distância=1120.6944
+
+  Média veículos : 3.00
+  Média distância: 1153.0330

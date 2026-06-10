@@ -4,6 +4,8 @@ import re
 import pandas as pd
 import numpy as np
 import math
+import time
+import os
 from dataclasses import dataclass
 
 
@@ -71,7 +73,7 @@ def ler_instancia(arquivo: str) -> tuple:
         for b in range(n):
             dx = customers[a].x - customers[b].x
             dy = customers[a].y - customers[b].y
-            dist[a][b] = round(math.sqrt(dx * dx + dy * dy), 4)
+            dist[a][b] = math.sqrt(dx * dx + dy * dy)
 
     return customers, dist, num_vehicles, capacity
 
@@ -223,23 +225,23 @@ def or_opt(rotas: list, customers: list, dist: np.ndarray, capacity: int) -> lis
 
         for idx_menor in range(len(rotas)):
             rota_menor = rotas[idx_menor]
-            clientes_relocados = []
+            # Trabalha em cópia para só confirmar se TODOS os clientes couberem
+            rotas_tentativa = [r[:] for r in rotas]
 
+            todos_realocados = True
             for cid in rota_menor:
                 melhor_rota_idx = None
                 melhor_pos = None
                 melhor_custo = float('inf')
 
-                for idx_outra in range(len(rotas)):
+                for idx_outra in range(len(rotas_tentativa)):
                     if idx_outra == idx_menor:
                         continue
-                    rota_outra = rotas[idx_outra]
+                    rota_outra = rotas_tentativa[idx_outra]
 
-                    # Tenta inserir cid em cada posição da rota_outra
                     for pos in range(len(rota_outra) + 1):
                         candidata = rota_outra[:pos] + [cid] + rota_outra[pos:]
                         if _rota_valida(candidata, customers, dist, capacity):
-                            # Custo de inserção: distância adicionada
                             prev_id = 0 if pos == 0 else rota_outra[pos - 1]
                             next_id = 0 if pos == len(rota_outra) else rota_outra[pos]
                             custo = (dist[prev_id][cid] + dist[cid][next_id]
@@ -250,17 +252,18 @@ def or_opt(rotas: list, customers: list, dist: np.ndarray, capacity: int) -> lis
                                 melhor_pos = pos
 
                 if melhor_rota_idx is not None:
-                    clientes_relocados.append((cid, melhor_rota_idx, melhor_pos))
+                    # Aplica na tentativa imediatamente para que o próximo
+                    # cliente veja a rota já atualizada
+                    rotas_tentativa[melhor_rota_idx].insert(melhor_pos, cid)
+                else:
+                    todos_realocados = False
+                    break
 
-            # Só elimina a rota se TODOS os clientes encontraram destino
-            if len(clientes_relocados) == len(rota_menor):
-                # Insere em ordem reversa de posição para não deslocar índices
-                inserções = sorted(clientes_relocados, key=lambda x: (x[1], -x[2]))
-                for cid, idx_outra, pos in inserções:
-                    rotas[idx_outra].insert(pos, cid)
-                rotas.pop(idx_menor)
+            if todos_realocados:
+                rotas_tentativa.pop(idx_menor)
+                rotas = rotas_tentativa
                 melhorou = True
-                break  # recomeça com as rotas atualizadas
+                break
 
     return rotas
 
@@ -306,95 +309,6 @@ def gerar_pop_vrptw(customers: list, dist: np.ndarray, tam_pop: int, frac_nn: fl
         populacao.append(tour)
 
     return populacao
-
-
-### caixeiro viajante
-
-def avaliar(df_dist, populacao, tam_pop):
-    distancias_pop = []
-    
-    for r in range(tam_pop):
-        individuo = populacao[r]
-        dist = 0
-        n = len(individuo)
-        
-        # Percorre o indivíduo calculando a distância entre cidades adjacentes
-        for i in range(n - 1):
-            cidade_atual = individuo[i]
-            proxima_cidade = individuo[i+1]
-            
-            dist += df_dist.at[cidade_atual, proxima_cidade]
-        #adicionar volta para primeira cidade
-        dist += df_dist.at[individuo[-1], individuo[0]]
-        
-        distancias_pop.append(dist)   
-    
-    return distancias_pop
-
-def gerar_pop(n_cidades, tam=50):
-    pop = []
-    for i in range(tam):
-        vetor_ = list(range(1, n_cidades + 1))
-        random.shuffle(vetor_)
-        pop.append(vetor_)
-    return pop
-
-def ler_matriz(arquivo, n_cidades=15):
-    with open(arquivo, 'r') as f:
-        lines = [line for line in f if not line.strip().startswith('#')]
-        content = " ".join(lines)
-
-    numbers = re.findall(r'\b\d+\b', content)
-    numbers = [int(n) for n in numbers]
-
-    total = n_cidades ** 2
-    if len(numbers) > total:
-        matrix_data = numbers[1:total + 1]
-    else:
-        matrix_data = numbers[:total]
-
-    matrix_array = np.array(matrix_data).reshape(n_cidades, n_cidades)
-
-    matrix_df = pd.DataFrame(
-        matrix_array,
-        index=range(1, n_cidades + 1),
-        columns=range(1, n_cidades + 1)
-    )
-
-    return matrix_df
-
-import random
-
-def roleta(individuos, distancias_pop, tam_pop):
-    vetorPais = []
-    
-    # Inversão: Cidades com menor distância ganham valores maiores
-    inversao = [1.0 / (d) for d in distancias_pop]
-    
-    # Cálculo das probabilidades (pesos)
-    soma_inversao = sum(inversao)
-    pesos = [inv / soma_inversao for inv in inversao]
-    
-    # Construção da Roleta (Soma acumulada)
-    vetor_roleta = []
-    soma_acumulada = 0
-    for peso in pesos:
-        soma_acumulada += peso
-        vetor_roleta.append(soma_acumulada)
-    
-    # Garantir que o último valor seja exatamente 1.0 para evitar erros de precisão
-    vetor_roleta[-1] = 1.0
-
-    for _ in range(tam_pop):
-        r = random.random() # Gera valor entre 0 e 1
-        
-        # Encontra o primeiro índice onde o valor acumulado é maior que o sorteado
-        for idx, limite in enumerate(vetor_roleta):
-            if r <= limite:
-                vetorPais.append(individuos[idx])
-                break
-                
-    return vetorPais
 
 def ox_crossover(vetor_pais):
     nova_populacao = []
@@ -495,47 +409,6 @@ def elitismo(populacao, distancias, nova_populacao, novas_distancias, n_elite=2)
 
     return elite + nova_populacao_final
 
-
-def main(arquivo, n_cidades, tam_pop, n_geracoes, taxa_mutacao, n_elite, cruzamento, seed, caminho_grafico):
-    random.seed(seed)
-
-    df_dist   = ler_matriz(arquivo, n_cidades)
-    populacao = gerar_pop(n_cidades, tam_pop)
-
-    fn_crossover = ox_crossover if cruzamento == "OX" else cx_crossover
-
-    historico = []
-
-    for geracao in range(n_geracoes):
-        distancias  = avaliar(df_dist, populacao, len(populacao))
-        melhor_dist = min(distancias)
-        historico.append(melhor_dist)
-        print(f"  [{cruzamento}] Geração {geracao + 1:03d} | Melhor: {melhor_dist}")
-
-        pais   = roleta(populacao, distancias, tam_pop)
-        filhos = fn_crossover(pais)
-        filhos = mutacao(filhos, taxa_mutacao)
-        filhos = filhos[:tam_pop]
-
-        novas_distancias = avaliar(df_dist, filhos, len(filhos))
-        populacao        = elitismo(populacao, distancias, filhos, novas_distancias, n_elite)
-
-    distancias_finais = avaliar(df_dist, populacao, len(populacao))
-    melhor_idx        = distancias_finais.index(min(distancias_finais))
-    melhor_distancia  = distancias_finais[melhor_idx]
-
-    plt.figure()
-    plt.plot(historico)
-    plt.xlabel("Geração")
-    plt.ylabel("Melhor distância")
-    plt.title(f"Convergência | pop={tam_pop} mut={taxa_mutacao} elite={n_elite} {cruzamento} seed={seed}")
-    plt.tight_layout()
-    plt.savefig(caminho_grafico, dpi=300, bbox_inches='tight')
-    plt.close()
-
-    return melhor_distancia
-
-
 def torneio_vrptw(populacao, fitnesses, tam_pop, pv=0.8):
     """Seleção por torneio para minimização."""
     n = len(populacao)
@@ -564,8 +437,12 @@ def main_vrptw(
     decoder_fn=None,  # decoder (padrão) ou decoder_max_fill
     usar_or_opt=False,
     caminho_grafico="convergencia_vrptw.png",
+    autores="Henrique Franco, Andre",
+    caminho_resultado="resultado_ag.txt",
+    verbose=True,
 ):
     random.seed(seed)
+    tempo_inicio = time.time()
 
     customers, dist, num_vehicles, capacity = ler_instancia(arquivo)
 
@@ -613,7 +490,8 @@ def main_vrptw(
             melhor_global_fitness = melhor_fit
             melhor_global_tour = populacao[melhor_idx][:]
 
-        print(f"Geração {geracao + 1:03d} | Veículos: {veic_melhor} | Distância: {dist_melhor:.4f} | Fitness: {melhor_fit:.4f}")
+        if verbose:
+            print(f"Geração {geracao + 1:03d} | Veículos: {veic_melhor} | Distância: {dist_melhor:.4f} | Fitness: {melhor_fit:.4f}")
 
         pais = torneio_vrptw(populacao, fitnesses, tam_pop)
         filhos = fn_crossover(pais)
@@ -627,14 +505,31 @@ def main_vrptw(
 
         populacao = elitismo(populacao, fitnesses, filhos, novas_fitnesses, n_elite)
 
-    # Resultado final com or-opt
+    # Resultado final
     rotas_finais = decodificar(melhor_global_tour)
     dist_final, veic_final = avaliar_vrptw(rotas_finais, customers, dist)
+    tempo_total = time.time() - tempo_inicio
+    nome_instancia = os.path.splitext(os.path.basename(arquivo))[0]
 
-    print("\n========================================")
-    print(f"Melhor solução: {veic_final} veículos | Distância: {dist_final:.4f}")
+    linhas_rotas = []
     for i, rota in enumerate(rotas_finais, 1):
-        print(f"  Rota {i}: {' '.join(map(str, rota))}")
+        caminho = " -> ".join(["0"] + [str(c) for c in rota] + ["0"])
+        linhas_rotas.append(f"Rota {i}: {caminho}")
+
+    resultado = (
+        f"======== MELHOR SOLUÇÃO AG ========\n"
+        f"Nome da instância : {nome_instancia}\n"
+        f"Autores : {autores}\n"
+        f"Número de veículos: {veic_final}\n"
+        f"Distância total: {dist_final:.4f}\n"
+        f"Tempo total: {tempo_total:.1f}s\n"
+        f"Rotas:\n" + "\n".join(linhas_rotas) + "\n"
+    )
+
+    if verbose:
+        print(resultado)
+    with open(caminho_resultado, "w") as f:
+        f.write(resultado)
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
     ax1.plot(historico_distancia, color='b')
@@ -662,7 +557,7 @@ if __name__ == '__main__':
         n_geracoes=200,
         taxa_mutacao=0.05,
         n_elite=2,
-        cruzamento="OX",
-        seed=42,
+        cruzamento="BCRC",
+        seed=77,
         decoder_fn=decoder_max_fill
     )

@@ -1,0 +1,12 @@
+Configuração: OX_maxfill_mut010
+  cruzamento=OX | taxa_mutacao=0.1
+  decoder=max_fill
+  or_opt=False | n_geracoes=100
+
+  seed=42     → veículos=4  distância=1301.2240
+  seed=7      → veículos=4  distância=1285.5180
+  seed=123    → veículos=4  distância=1292.8746
+  seed=999    → veículos=4  distância=1284.8689
+
+  Média veículos : 4.00
+  Média distância: 1291.1214

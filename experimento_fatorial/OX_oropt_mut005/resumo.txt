@@ -1,0 +1,12 @@
+Configuração: OX_oropt_mut005
+  cruzamento=OX | taxa_mutacao=0.05
+  decoder=padrão
+  or_opt=True | n_geracoes=25
+
+  seed=42     → veículos=3  distância=1271.7150
+  seed=7      → veículos=2  distância=1566.0961
+  seed=123    → veículos=2  distância=1450.4480
+  seed=999    → veículos=2  distância=1352.3150
+
+  Média veículos : 2.25
+  Média distância: 1410.1435
